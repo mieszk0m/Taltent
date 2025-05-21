@@ -5,9 +5,10 @@ import re
 from bs4 import BeautifulSoup
 import pandas as pd
 
-BASE = "https://panoramafirm.pl/terminal/wielkopolska"
+BASE = "https://panoramafirm.pl/terminal/wielkopolska" #TU ZMIENIAMY ADRES WITRYNY
 PAGE = BASE + "/firmy,{}.html"
 HEAD = {"User-Agent": "Mozilla/5.0"}
+x = "panorama_terminale_wielkopolska.xlsx" #TU ZMIENIAMY NAZWĘ ZAPISANEGO PLIKU
 
 # ────────────────────────── helpers ──────────────────────────
 def sleep():
@@ -121,5 +122,5 @@ for page in range(1, MAX_PAGES + 1):
             print("⚠️ Błąd przy", link, "→", e)
 
 df = pd.DataFrame(records)
-df.to_excel("panorama_terminale_wielkopolska.xlsx", index=False)
-print(f"✅ Zebrano {len(df)} firm – zapisano do panorama_firmy_spkdapodka.xlsx")
+df.to_excel(x, index=False)
+print(f"✅ Zebrano {len(df)} firm – " + x)
