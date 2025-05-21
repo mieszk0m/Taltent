@@ -2,13 +2,24 @@ import requests
 import random
 import time
 import re
+import os
 from bs4 import BeautifulSoup
 import pandas as pd
 
 BASE = "https://panoramafirm.pl/terminal/wielkopolska" #TU ZMIENIAMY ADRES WITRYNY
 PAGE = BASE + "/firmy,{}.html"
 HEAD = {"User-Agent": "Mozilla/5.0"}
-x = "panorama_terminale_wielkopolska.xlsx" #TU ZMIENIAMY NAZWĘ ZAPISANEGO PLIKU
+x = "panorama_terminale_wielkopolska" #TU ZMIENIAMY NAZWĘ ZAPISANEGO PLIKU
+counter = 0
+
+while True:
+    suffix = f"_{counter}" if counter else ""
+    filename = f"{base_name}{suffix}.xlsx"
+    if not os.path.exists(filename):
+        break
+    counter += 1
+
+x = filename  # uaktualnienie zmiennej z nazwą pliku
 
 # ────────────────────────── helpers ──────────────────────────
 def sleep():
