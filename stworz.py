@@ -9,7 +9,7 @@ import pandas as pd
 BASE = "https://panoramafirm.pl/terminal/wielkopolska" #TU ZMIENIAMY ADRES WITRYNY
 PAGE = BASE + "/firmy,{}.html"
 HEAD = {"User-Agent": "Mozilla/5.0"}
-x = "panorama_terminale_wielkopolska" #TU ZMIENIAMY NAZWĘ ZAPISANEGO PLIKU
+base_name = "panorama_terminale_wielkopolska" #TU ZMIENIAMY NAZWĘ ZAPISANEGO PLIKU
 counter = 0
 
 while True:
