@@ -122,7 +122,7 @@ def parse_detail(url: str) -> dict:
     }
 
 # ────────────────────────── main crawl ───────────────────────
-records, MAX_PAGES = [], 5                     # ← zmień liczbę stron jeśli chcesz
+records, MAX_PAGES = [], 100                     # ← zmień liczbę stron jeśli chcesz
 
 for page in range(1, MAX_PAGES + 1):
     for link in company_links(page):
