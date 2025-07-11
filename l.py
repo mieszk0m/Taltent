@@ -1,21 +1,15 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import requests
-import random
-import time
-import re
-import os
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager   # ★ automatyka
+import os, tempfile, time, random, re, requests, pandas as pd
 from bs4 import BeautifulSoup
-from typing import Optional
-import pandas as pd
-
+from typing import Optional, Tuple
 # To WKLEJAMY LINK
 search_url = "https://www.linkedin.com/search/results/companies/?companyHqGeo=%5B%22106398853%22%5D&industryCompanyVertical=%5B%2227%22%5D&origin=FACETED_SEARCH&sid=PG)"
 
-
-# Tu Możemy zmienić nazwę pliu 
-
-base_name = "firmy_linkedin" #TU ZMIENIAMY NAZWĘ ZAPISANEGO PLIKU
+#TU ZMIENIAMY NAZWĘ ZAPISANEGO PLIKU
+base_name = "firmy_linkedin"
 
 counter = 0
 while True:
@@ -30,9 +24,12 @@ t = filename  # uaktualnienie zmiennej z nazwą pliku
 
 # Konfiguracja przeglądarki z sesją logowania
 options = webdriver.ChromeOptions()
-options.add_argument("user-data-dir=C:\\Users\\DELL\\AppData\\Local\\Google\\Chrome\\User Data\\selenium_session")
-driver = webdriver.Chrome(options=options)
-
+tmp_profile = os.path.join(tempfile.gettempdir(), "selenium_session")
+options.add_argument(f"user-data-dir={tmp_profile}")
+driver = webdriver.Chrome(
+            service=Service(ChromeDriverManager().install()),
+            options=options
+         )
 # Otwórz wyszukiwanie firm
 driver.get(search_url)
 time.sleep(30) #Czas na zalogowanie
@@ -49,27 +46,30 @@ def wstaw_fragment_do_linku(link: str, po_znaczniki: str, co_dokleic: str) -> st
         raise ValueError(f"Nie znaleziono '{po_znaczniki}' w podanym linku.")
     return link.replace(po_znaczniki, po_znaczniki + co_dokleic)
 
-def znajdz_email_i_telefon(html: str) -> tuple[Optional[str], Optional[str]]:
-    # Usuwamy tagi HTML – żeby łatwiej wyciągnąć czysty tekst
-    text_only = re.sub(r"<[^>]+>", " ", html)
+EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
+TEL_RE   = re.compile(r"""
+    (?<!\w)              # nic alfanum. tuż przed
+    \+?                  # opcjonalny +
+    (?:\d[\s\-()]*){9,}  # ≥ 9 bloków „cyfra + separator”
+    \d                   # kończy się cyfrą
+    (?!\w)               # nic alfanum. tuż po
+""", re.VERBOSE)
 
-    # Szukanie adresu e-mail
-    email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-    email_match = re.search(email_pattern, text_only)
+def znajdz_email_i_telefon(html: str) -> Tuple[Optional[str], Optional[str]]:
+    text   = re.sub(r"<[^>]+>", " ", html)       # pozbywamy się tagów
+    email  = EMAIL_RE.search(text)
+    email  = email.group() if email else None
 
-    # Szukanie numeru telefonu (np. +48 123 456 789, 123-456-789 itp.)
-    telefon_pattern = r"""
-    (?:(?:\+48)?[\s\-]?)?            # +48 (opcjonalnie) + separator
-    (?:\(?\d{2,3}\)?[\s\-]?)?        # kierunkowy (2–3 cyfry) w () lub bez
-    (?:\d[\s\-\(\)]*){8,}\d          # ≥ 9 cyfr łącznie, z dowolnymi separatorami
-"""
-    telefon_match = re.search(telefon_pattern, text_only)
-
-    email = email_match.group() if email_match else None
-    telefon = telefon_match.group() if telefon_match else None
+    telefon = None
+    m = TEL_RE.search(text)
+    if m:
+        raw    = m.group()
+        digits = re.sub(r"\D", "", raw)
+        if 9 <= len(digits) <= 11:               # 👈 istotny filtr
+            plus = "+" if raw.lstrip().startswith("+") else ""
+            telefon = plus + digits
 
     return email, telefon
-
 class Firma:
     def __init__(
         self,
