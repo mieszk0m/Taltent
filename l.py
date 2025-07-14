@@ -215,7 +215,10 @@ dane_firm = []
 
 for firma in company_links:
     w = stworz_firme_z_html(firma)
-    dane_firm.append(w)
+    if w is not None:
+        dane_firm.append(w)
+    else:
+        print(f"⚠️ Pominąłem {firma} – nie znaleziono nazwy.")
 
 # Zamknij przeglądarkę
 driver.quit()
