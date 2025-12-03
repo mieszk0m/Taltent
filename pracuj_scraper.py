@@ -26,7 +26,7 @@ SESSION = requests.Session()
 SESSION.headers.update(HEAD)
 
 def sleep():
-    time.sleep(random.uniform(0.6, 1.4))
+    time.sleep(random.uniform(0.8, 2.5))
 
 _driver = None
 def _init_driver():
@@ -46,7 +46,7 @@ def _init_driver():
 def get_html_selenium(url: str) -> str:
     d = _init_driver()
     d.get(url)
-    time.sleep(2.0)
+    time.sleep(random.uniform(2.5, 5.0))
     return d.page_source
 
 def get_html(url: str) -> str:
@@ -133,7 +133,9 @@ def extract_section_items(soup: BeautifulSoup, header_text: str):
     return items
 
 def parse_offer_detail(url: str) -> Dict[str, str]:
+    sleep()
     soup = get_soup(url)
+    time.sleep(random.uniform(1.5, 3.0))
     zakres = extract_section_items(soup, 'Twój zakres obowiązków')
     wymag = extract_section_items(soup, 'Nasze wymagania')
     return {'Zakres obowiązków': " | ".join(zakres),
@@ -145,18 +147,24 @@ def crawl() -> pd.DataFrame:
         url = list_page_url(FILTER_URL, p)
         print(f"📄 Strona {p}: {url}")
         soup = get_soup(url)
+        time.sleep(random.uniform(2.5, 5.5))  # symulacja czasu czytania strony z ofertami
         offers = list(parse_listing_page(soup))
         print(f"   • ofert na liście: {len(offers)}")
         for off in offers:
             try:
                 details = parse_offer_detail(off['Link'])
+            
             except Exception as e:
                 print("     ⚠️ błąd na ofercie:", off['Link'], e)
                 details = {'Zakres obowiązków': '', 'Nasze wymagania': ''}
             off.update(details)
             rows.append(off)
-    return pd.DataFrame(rows)
-
+            time.sleep(random.uniform(3.0, 7.0))  # czas "czytania" jednej oferty
+            # czasem dłuższa pauza co kilka ofert
+            if random.random() < 0.15:
+                print("🕓 krótka przerwa na kawę ☕")
+                time.sleep(random.uniform(10, 25))
+                return pd.DataFrame(rows)
 def main():
     df = crawl()
     if OUT_FILE.lower().endswith('.csv'):
